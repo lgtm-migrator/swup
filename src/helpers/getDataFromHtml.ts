@@ -1,9 +1,10 @@
 import { query, queryAll } from '../utils.js';
+import {Page} from "../modules/Cache";
 
-const getDataFromHtml = (html, containers) => {
+const getDataFromHtml = (html: string, containers: string[]): Partial<Page> => {
 	let fakeDom = document.createElement('html');
 	fakeDom.innerHTML = html;
-	let blocks = [];
+	let blocks: string[] = [];
 
 	containers.forEach((selector) => {
 		if (query(selector, fakeDom) == null) {
@@ -14,22 +15,23 @@ const getDataFromHtml = (html, containers) => {
 				console.warn(`[swup] Mismatched number of containers found on new page.`);
 			}
 			queryAll(selector).forEach((item, index) => {
-				queryAll(selector, fakeDom)[index].setAttribute('data-swup', blocks.length);
+				queryAll(selector, fakeDom)[index].setAttribute('data-swup', String(blocks.length));
 				blocks.push(queryAll(selector, fakeDom)[index].outerHTML);
 			});
 		}
 	});
 
 	const json = {
-		title: (fakeDom.querySelector('title') || {}).innerText,
-		pageClass: fakeDom.querySelector('body').className,
+		title: fakeDom.querySelector('title')?.innerText || '',
+		pageClass: fakeDom.querySelector('body')?.className || '',
 		originalContent: html,
 		blocks: blocks
 	};
 
 	// to prevent memory leaks
 	fakeDom.innerHTML = '';
-	fakeDom = null;
+	// @ts-ignore
+    fakeDom = null;
 
 	return json;
 };

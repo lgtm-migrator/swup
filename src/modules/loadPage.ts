@@ -1,8 +1,9 @@
 import { classify, createHistoryRecord, fetch } from '../helpers.js';
+import Swup, {Transition} from "../index";
 
-const loadPage = function(data, popstate) {
+const loadPage = function(this: Swup, data: { url: string, customTransition: Transition | null }, popstate: PopStateEvent) {
 	// create array for storing animation promises
-	let animationPromises = [],
+	let animationPromises: Promise<void>[] = [],
 		xhrPromise;
 	const animateOut = () => {
 		this.triggerEvent('animationOutStart');

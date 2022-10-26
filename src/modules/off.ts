@@ -1,4 +1,6 @@
-const off = function off(event, handler) {
+import Swup, {EventHandler, EventTypes} from "../index";
+
+const off = function off(this: Swup, event?: EventTypes, handler?: EventHandler) {
 	if (event != null) {
 		if (handler != null) {
 			if (
@@ -20,7 +22,7 @@ const off = function off(event, handler) {
 		}
 	} else {
 		Object.keys(this._handlers).forEach((keys) => {
-			this._handlers[keys] = [];
+			this._handlers[keys as EventTypes] = [];
 		});
 	}
 };

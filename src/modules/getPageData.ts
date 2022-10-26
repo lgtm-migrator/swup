@@ -1,6 +1,8 @@
 import { getDataFromHtml } from '../helpers.js';
+import { Page } from "./Cache";
+import Swup from "../index";
 
-const getPageData = function(request) {
+const getPageData = function(this: Swup, request: XMLHttpRequest): Partial<Page> | null {
 	// this method can be replaced in case other content than html is expected to be received from server
 	// this function should always return {title, pageClass, originalContent, blocks, responseURL}
 	// in case page has invalid structure - return null

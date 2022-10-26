@@ -1,4 +1,4 @@
-const cleanupAnimationClasses = () => {
+const cleanupAnimationClasses = (): void => {
 	document.documentElement.className.split(' ').forEach((classItem) => {
 		if (
 			// remove "to-{page}" classes

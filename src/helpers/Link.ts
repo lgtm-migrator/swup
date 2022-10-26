@@ -1,6 +1,8 @@
 export default class Link {
-	constructor(elementOrUrl) {
-		if (elementOrUrl instanceof Element || elementOrUrl instanceof SVGElement) {
+    link: HTMLAnchorElement | SVGAElement;
+
+	constructor(elementOrUrl: HTMLAnchorElement | SVGAElement | string) {
+		if (elementOrUrl instanceof HTMLAnchorElement || elementOrUrl instanceof SVGElement) {
 			this.link = elementOrUrl;
 		} else {
 			this.link = document.createElement('a');
@@ -9,7 +11,8 @@ export default class Link {
 	}
 
 	getPath() {
-		let path = this.link.pathname;
+		// @ts-ignore this shouldn't work properly for SVG links?
+        let path = this.link.pathname;
 		if (path[0] !== '/') {
 			path = '/' + path;
 		}
@@ -17,6 +20,7 @@ export default class Link {
 	}
 
 	getAddress() {
+        // @ts-ignore this shouldn't work properly for SVG links?
 		let path = this.link.pathname + this.link.search;
 
 		if (this.link.getAttribute('xlink:href')) {
@@ -30,6 +34,7 @@ export default class Link {
 	}
 
 	getHash() {
+        // @ts-ignore then this shouldn't work properly for SVG links?
 		return this.link.hash;
 	}
 }

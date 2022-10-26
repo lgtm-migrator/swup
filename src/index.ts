@@ -1,19 +1,19 @@
 import delegate from 'delegate-it';
 
 // modules
-import Cache from './modules/Cache.js';
-import loadPage from './modules/loadPage.js';
-import renderPage from './modules/renderPage.js';
-import triggerEvent from './modules/triggerEvent.js';
-import on from './modules/on.js';
-import off from './modules/off.js';
-import updateTransition from './modules/updateTransition.js';
-import getAnchorElement from './modules/getAnchorElement.js';
-import getAnimationPromises from './modules/getAnimationPromises.js';
-import getPageData from './modules/getPageData.js';
-import { use, unuse, findPlugin } from './modules/plugins.js';
+import Cache from './modules/Cache';
+import loadPage from './modules/loadPage';
+import renderPage from './modules/renderPage';
+import triggerEvent from './modules/triggerEvent';
+import on from './modules/on';
+import off from './modules/off';
+import updateTransition from './modules/updateTransition';
+import getAnchorElement from './modules/getAnchorElement';
+import getAnimationPromises from './modules/getAnimationPromises';
+import getPageData from './modules/getPageData';
+import { use, unuse, findPlugin } from './modules/plugins';
 
-import { queryAll } from './utils.js';
+import { queryAll } from './utils';
 import {
 	getCurrentUrl,
 	markSwupElements,
@@ -21,8 +21,86 @@ import {
 	cleanupAnimationClasses
 } from './helpers.js';
 
+export type PluginInstance = {
+    name: string;
+    isSwupPlugin: true;
+    swup: Swup;
+    mount: () => void;
+    unmount: () => void;
+    _beforeMount?: () => void;
+    _afterUnmount?: () => void;
+};
+type Options = {
+    animateHistoryBrowsing: boolean,
+    animationSelector: string,
+    linkSelector: string,
+    cache: boolean,
+    containers: string[],
+    requestHeaders: HeadersInit,
+    plugins: PluginInstance[],
+    skipPopStateHandling: (event: PopStateEvent) => boolean;
+};
+export type EventTypes = | 'animationInDone'
+    | 'animationInStart'
+    | 'animationOutDone'
+    | 'animationOutStart'
+    | 'animationSkipped'
+    | 'clickLink'
+    | 'contentReplaced'
+    | 'disabled'
+    | 'enabled'
+    | 'openPageInNewTab'
+    | 'pageLoaded'
+    | 'pageRetrievedFromCache'
+    | 'pageView'
+    | 'popState'
+    | 'samePage'
+    | 'samePageWithHash'
+    | 'serverError'
+    | 'transitionStart'
+    | 'transitionEnd'
+    | 'willReplaceContent';
+export type EventHandlerEventType = MouseEvent | PopStateEvent;
+export type EventHandler = (event?: EventHandlerEventType) => void;
+export type Transition = {
+    from?: string;
+    to?: string;
+    custom?: any;
+};
+interface DelegateMouseEvent extends MouseEvent { delegateTarget: Element };
+interface PreloadPromise extends Promise<Response> {
+    route: string
+};
+
 export default class Swup {
-	constructor(setOptions) {
+    _handlers: Record<EventTypes, EventHandler[]>;
+
+    private readonly delegatedListeners: Record<any, any>;
+    public scrollToElement: HTMLElement | null = null;
+    public preloadPromise: PreloadPromise | null = null;
+    public plugins: PluginInstance[];
+    public transition: Transition;
+    private boundPopStateHandler: OmitThisParameter<(event: any) => void>;
+    public options: Options;
+    public  cache: Cache;
+
+    private readonly loadPage: typeof loadPage;
+    private readonly renderPage: typeof renderPage
+    private readonly on: typeof on
+    private readonly off: typeof off
+    private readonly getPageData: typeof getPageData
+    private readonly getAnchorElement: typeof getAnchorElement
+    private readonly use: typeof use
+    private readonly unuse: typeof unuse
+    private readonly findPlugin: typeof findPlugin
+    public updateTransition: typeof updateTransition
+    public log = (message: string, context?: any) => {}; // here so it can be us: typeof by lugins
+    public getAnimationPromises: typeof getAnimationPromises
+    public cleanupAnimationClasses: typeof cleanupAnimationClasses
+    public triggerEvent: typeof triggerEvent
+    public getCurrentUrl: typeof getCurrentUrl
+
+	constructor(setOptions: Options) {
 		// default options
 		let defaults = {
 			animateHistoryBrowsing: false,
@@ -37,7 +115,7 @@ export default class Swup {
 				Accept: 'text/html, application/xhtml+xml'
 			},
 			plugins: [],
-			skipPopStateHandling: function(event) {
+			skipPopStateHandling: function(event: PopStateEvent) {
 				return !(event.state && event.state.source === 'swup');
 			}
 		};
@@ -88,8 +166,7 @@ export default class Swup {
 		this.boundPopStateHandler = this.popStateHandler.bind(this);
 
 		// make modules accessible in instance
-		this.cache = new Cache();
-		this.cache.swup = this;
+		this.cache = new Cache(this);
 		this.loadPage = loadPage;
 		this.renderPage = renderPage;
 		this.triggerEvent = triggerEvent;
@@ -178,7 +255,7 @@ export default class Swup {
 		});
 
 		// remove swup data atributes from blocks
-		queryAll('[data-swup]').forEach((element) => {
+		queryAll('[data-swup]').forEach((element: Element) => {
 			element.removeAttribute('data-swup');
 		});
 
@@ -192,7 +269,7 @@ export default class Swup {
 		document.documentElement.classList.remove('swup-enabled');
 	}
 
-	linkClickHandler(event) {
+	linkClickHandler(event: DelegateMouseEvent) {
 		// no control key pressed
 		if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
 			// index of pressed button needs to be checked because Firefox triggers click on all mouse buttons
@@ -248,7 +325,7 @@ export default class Swup {
 		}
 	}
 
-	popStateHandler(event) {
+	popStateHandler(event: PopStateEvent) {
 		if (this.options.skipPopStateHandling(event)) return;
 		const link = new Link(event.state ? event.state.url : window.location.pathname);
 		if (link.getHash() !== '') {

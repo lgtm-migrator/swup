@@ -1,4 +1,6 @@
-export const use = function(plugin) {
+import Swup, {PluginInstance} from "../index";
+
+export const use = function(this: Swup, plugin: PluginInstance) {
 	if (!plugin.isSwupPlugin) {
 		console.warn(`Not swup plugin instance ${plugin}.`);
 		return;
@@ -14,7 +16,7 @@ export const use = function(plugin) {
 	return this.plugins;
 };
 
-export const unuse = function(plugin) {
+export const unuse = function(this: Swup, plugin: PluginInstance) {
 	let pluginReference;
 
 	if (typeof plugin === 'string') {
@@ -40,6 +42,6 @@ export const unuse = function(plugin) {
 	return this.plugins;
 };
 
-export const findPlugin = function(pluginName) {
+export const findPlugin = function(this: Swup, pluginName: string) {
 	return this.plugins.find((p) => pluginName === p.name);
 };

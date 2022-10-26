@@ -1,6 +1,6 @@
 import Link from './Link.js';
 
-const normalizeUrl = (url) => {
+const normalizeUrl = (url: string): string => {
 	return new Link(url).getAddress();
 };
 

@@ -1,6 +1,9 @@
 import { Link } from '../helpers.js';
+import {Page} from "./Cache";
+import Swup from "../index";
+import {query} from "../utils";
 
-const renderPage = function(page, popstate) {
+const renderPage = function(this: Swup, page: Page, popstate: PopStateEvent) {
 	document.documentElement.classList.remove('is-leaving');
 
 	const isCurrentPage = this.getCurrentUrl() === page.url;
@@ -31,7 +34,13 @@ const renderPage = function(page, popstate) {
 	this.triggerEvent('willReplaceContent', popstate);
 	// replace blocks
 	for (let i = 0; i < page.blocks.length; i++) {
-		document.body.querySelector(`[data-swup="${i}"]`).outerHTML = page.blocks[i];
+        const container = query(`[data-swup="${i}"]`);
+
+        if (container) {
+            container.outerHTML= page.blocks[i];
+        } else {
+            throw new Error(`[data-swup="${i}"] not found on the page.`)
+        }
 	}
 	// set title
 	document.title = page.title;

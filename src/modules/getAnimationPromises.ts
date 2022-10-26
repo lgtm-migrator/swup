@@ -1,4 +1,5 @@
 import { queryAll, toMs } from '../utils.js';
+import Swup from "../index";
 
 // Transition property/event sniffing
 let transitionProp = 'transition';
@@ -16,7 +17,7 @@ if (window.onanimationend === undefined && window.onwebkitanimationend !== undef
 	animationEndEvent = 'webkitAnimationEnd';
 }
 
-export default function getAnimationPromises() {
+export default function getAnimationPromises(this: Swup) {
 	const selector = this.options.animationSelector;
 	const animatedElements = queryAll(selector, document.body);
 
@@ -28,7 +29,7 @@ export default function getAnimationPromises() {
 	return animatedElements.map((element) => getAnimationPromiseForElement(element, selector));
 }
 
-function getAnimationPromiseForElement(element, selector, expectedType = null) {
+function getAnimationPromiseForElement(element: Element, selector: string, expectedType = null): Promise<void> {
 	const { type, timeout, propCount } = getTransitionInfo(element, expectedType);
 
 	// Resolve immediately if no transition defined
@@ -49,7 +50,7 @@ function getAnimationPromiseForElement(element, selector, expectedType = null) {
 			resolve();
 		};
 
-		const onEnd = (event) => {
+		const onEnd = (event: TransitionEvent) => {
 			// Skip transitions on child elements
 			if (event.target !== element) {
 				return;
@@ -77,7 +78,7 @@ function getAnimationPromiseForElement(element, selector, expectedType = null) {
 	});
 }
 
-export function getTransitionInfo(element, expectedType = null) {
+export function getTransitionInfo(element: Element, expectedType = null) {
 	const styles = window.getComputedStyle(element);
 
 	const transitionDelays = (styles[`${transitionProp}Delay`] || '').split(', ');
@@ -126,7 +127,7 @@ export function getTransitionInfo(element, expectedType = null) {
 	};
 }
 
-function calculateTimeout(delays, durations) {
+function calculateTimeout(delays: string[], durations: string[]) {
 	while (delays.length < durations.length) {
 		delays = delays.concat(delays);
 	}

@@ -1,4 +1,4 @@
-const createHistoryRecord = (url) => {
+const createHistoryRecord = (url: string): void => {
 	window.history.pushState(
 		{
 			url: url || window.location.href.split(window.location.hostname)[1],
